@@ -1,33 +1,48 @@
-import { StyleSheet, Platform, TouchableHighlight } from 'react-native';
+import { StyleSheet, TouchableHighlight, TextInput, Image } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { API_FACTS_URL, apiBreedImgUrl } from '@/constants/ApiUrls';
+import { FactsResponse } from '@/models/facts/FactsResponse';
+import { BreedList } from '@/components/ui/BreedList';
 
 export default function HomeScreen() {
   const [fact, setFact] = useState('nothing yet...');
   const [loading, setLoading] = useState(false);
+
+  const [temp, setTemp] = useState('');
+
+  useEffect(() => {
+    fetch(apiBreedImgUrl('hound')).then(res => res.json())
+    .then(data => {
+      console.log(data);
+      setTemp(data.message);
+    }).catch(err => {
+      console.log(err);
+    });
+  }, []);
 
   useEffect(() => {
     console.log('HomeScreen mounted');
     handleFetchFact();
   }, []);
 
-  const handleFetchFact = function () {
+  const handleFetchFact = useCallback(() => {
     if (loading) {
       return;
     }
     setLoading(true);
-    fetch('https://dogapi.dog/api/v2/facts?limit=1')
+    fetch(API_FACTS_URL)
       .then(res => res.json())
-      .then(data => {
-        setFact(data.data[0].attributes.body);
+      .then((data: FactsResponse) => {
+        setFact(data?.data?.[0]?.attributes?.body);
       }).finally(() => {
         setLoading(false);
       });
-  };
+  }, [loading, setLoading, setFact]);
 
   return (
   <ThemedView style={styles.container}>
@@ -35,42 +50,18 @@ export default function HomeScreen() {
       <ThemedText type="defaultSemiBold">{fact}</ThemedText>
       <TouchableHighlight onPress={handleFetchFact}>
         <IconSymbol 
-          size={24}
-          name="clock.circle.fill"
+          size={32}
+          name="arrow.2.circlepath"
           color={Colors.dark.icon}>
         </IconSymbol>
       </TouchableHighlight>
     </ThemedView>
-    <ThemedView style={styles.stepContainer}>
-      <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-      <ThemedText>
-        Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-        Press{' '}
-        <ThemedText type="defaultSemiBold">
-          {Platform.select({
-            ios: 'cmd + d',
-            android: 'cmd + m',
-            web: 'F12'
-          })}
-        </ThemedText>{' '}
-        to open developer tools.
-      </ThemedText>
-    </ThemedView>
-    <ThemedView style={styles.stepContainer}>
-      <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-      <ThemedText>
-        Tap the Explore tab to learn more about what's included in this starter app.
-      </ThemedText>
-    </ThemedView>
-    <ThemedView style={styles.stepContainer}>
-      <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-      <ThemedText>
-        When you're ready, run{' '}
-        <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-        <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-        <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-        <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-      </ThemedText>
+    <ThemedView style={styles.breedsContainer}>
+      <ThemedView style={styles.searchContainer}>
+        <TextInput placeholder='Seach...' style={styles.searchInput}></TextInput>
+      </ThemedView>
+      <BreedList style={styles.breedList}></BreedList>
+      <Image source={{ uri: temp }} style={{ width: 100, height: 100 }}></Image>
     </ThemedView>
   </ThemedView>
   );
@@ -81,6 +72,7 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 8,
     padding: 16,
+    paddingTop: 48,
   },
   factContainer: {
     flexDirection: 'row',
@@ -91,8 +83,24 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 8,
   },
-  stepContainer: {
+  breedsContainer: {
+    display: 'flex',
+    flexDirection: 'column',
     gap: 8,
-    marginBottom: 8,
+    flex: 1,
+    marginTop: 64,
   },
+  searchContainer: {
+
+  },
+  breedList: {
+
+  },
+  searchInput: {
+    backgroundColor: 'rgb(54, 60, 64)',
+    borderRadius: 8,
+    padding: 8,
+    color: Colors.dark.text,
+    fontSize: 16,
+  }
 });
