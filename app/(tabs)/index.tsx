@@ -1,32 +1,18 @@
-import { StyleSheet, TouchableHighlight, TextInput, Image } from 'react-native';
-
+import { StyleSheet, TouchableHighlight, TextInput, ActivityIndicator } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 import { useCallback, useEffect, useState } from 'react';
-import { API_FACTS_URL, apiBreedImgUrl } from '@/constants/ApiUrls';
+import { API_FACTS_URL } from '@/constants/ApiUrls';
 import { FactsResponse } from '@/models/facts/FactsResponse';
 import { BreedList } from '@/components/ui/BreedList';
 
 export default function HomeScreen() {
-  const [fact, setFact] = useState('nothing yet...');
+  const [fact, setFact] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const [temp, setTemp] = useState('');
-
   useEffect(() => {
-    fetch(apiBreedImgUrl('hound')).then(res => res.json())
-    .then(data => {
-      console.log(data);
-      setTemp(data.message);
-    }).catch(err => {
-      console.log(err);
-    });
-  }, []);
-
-  useEffect(() => {
-    console.log('HomeScreen mounted');
     handleFetchFact();
   }, []);
 
@@ -47,7 +33,9 @@ export default function HomeScreen() {
   return (
   <ThemedView style={styles.container}>
     <ThemedView style={styles.factContainer}>
-      <ThemedText type="defaultSemiBold">{fact}</ThemedText>
+      <ThemedText type="defaultSemiBold">
+        { loading ? <ActivityIndicator /> : fact }
+      </ThemedText>
       <TouchableHighlight onPress={handleFetchFact}>
         <IconSymbol 
           size={32}
@@ -60,8 +48,7 @@ export default function HomeScreen() {
       <ThemedView style={styles.searchContainer}>
         <TextInput placeholder='Seach...' style={styles.searchInput}></TextInput>
       </ThemedView>
-      <BreedList style={styles.breedList}></BreedList>
-      <Image source={{ uri: temp }} style={{ width: 100, height: 100 }}></Image>
+      <BreedList />
     </ThemedView>
   </ThemedView>
   );
@@ -91,9 +78,6 @@ const styles = StyleSheet.create({
     marginTop: 64,
   },
   searchContainer: {
-
-  },
-  breedList: {
 
   },
   searchInput: {
