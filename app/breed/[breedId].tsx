@@ -1,7 +1,7 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
-import { apiBreedImgUrl, apiBreedInfoUrl } from "@/constants/ApiUrls";
+import { apiBreedImgUrl, apiBreedInfoUrl, getLocalImgUrl } from "@/constants/ApiUrls";
 import { Colors } from "@/constants/Colors";
 import { BreedDTO } from "@/models/breeds/BreedDTO";
 import { BreedResponse } from "@/models/breeds/BreedResponse";
@@ -9,10 +9,10 @@ import { BreedImageResponse } from "@/models/image/BreedImageResponse";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Image, StyleSheet } from "react-native";
-import { TouchableHighlight } from "react-native-gesture-handler";
+import { TouchableHighlight } from "react-native";
 
 export default function BreedScreen() {
-  const { breedId } = useLocalSearchParams();
+  const { breedId, currentPage } = useLocalSearchParams();
   const nav = useRouter();
 
   const [breed, setBreed] = useState<BreedDTO>();
@@ -21,22 +21,27 @@ export default function BreedScreen() {
   const [loadingImg, setLoadingImg] = useState(false);
 
   const handleBackClick = useCallback(() => {
-    nav.push('/(tabs)');
+    nav.push({ pathname: '/(tabs)', params: { currentPage }});
   }, [nav]);
 
   useEffect(() => {
     if (breed) {
-      setLoadingImg(true);
-      fetch(apiBreedImgUrl(breed.attributes.name))
-        .then(res => res.json())
-        .then((data: BreedImageResponse) => {
-          setBreedImg(data?.status === 'error' ? undefined : data.message);
-          setLoadingImg(false);
-        }).catch(err => {
-          console.log(err);
-          setLoadingImg(false);
-        });
-      } 
+      const localImgUrl = getLocalImgUrl(breed.attributes.name);
+      if (localImgUrl) {
+        setBreedImg(localImgUrl);
+      } else {
+        setLoadingImg(true);
+        fetch(apiBreedImgUrl(breed.attributes.name))
+          .then(res => res.json())
+          .then((data: BreedImageResponse) => {
+            setBreedImg(data?.status === 'error' ? undefined : data.message);
+            setLoadingImg(false);
+          }).catch(err => {
+            console.log(err);
+            setLoadingImg(false);
+          });
+        } 
+      }
     }, [breed, setBreedImg, setLoadingImg]);
 
   useEffect(() => {
@@ -84,6 +89,7 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 8,
     padding: 16,
+    paddingTop: 48,
   },
   navHeader: {
     display: 'flex',

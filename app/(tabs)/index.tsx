@@ -4,11 +4,21 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 import { useCallback, useEffect, useState } from 'react';
-import { API_FACTS_URL } from '@/constants/ApiUrls';
+import { API_BREED_LIST_URL, API_FACTS_URL } from '@/constants/ApiUrls';
 import { FactsResponse } from '@/models/facts/FactsResponse';
 import { BreedList } from '@/components/ui/BreedList';
+import { BreedsResponse } from '@/models/breeds/BreedsResponse';
+import { BreedDTO } from '@/models/breeds/BreedDTO';
+import { ResponseMeta } from '@/models/ResponseMeta';
+import { ResponseLinks } from '@/models/ResponseLinks';
+import { useLocalSearchParams } from 'expo-router';
 
 export default function HomeScreen() {
+  const { currentPage } = useLocalSearchParams();
+  
+  const [breeds, setBreeds] = useState<BreedDTO[]>([]);
+  const [meta, setMeta] = useState<ResponseMeta>();
+  const [links, setLinks] = useState<ResponseLinks>();
   const [fact, setFact] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -30,6 +40,38 @@ export default function HomeScreen() {
       });
   }, [loading, setLoading, setFact]);
 
+  useEffect(() => {
+    handleFetchBreeds();
+  }, []);
+
+  const handleFetchBreeds = function(link?: string) {
+    if (loading) {
+      return;
+    }
+    if (!link) {
+      link = API_BREED_LIST_URL;
+      if (currentPage != null) {
+        link = `${API_BREED_LIST_URL}?page[number]=${currentPage}`;
+      }
+    }
+    setLoading(true);
+    fetch(link)
+      .then(res => res.json())
+      .then((res: BreedsResponse) => {
+        setBreeds(res.data);
+        setMeta(res.meta);
+        setLinks(res.links);
+      }).finally(() => {
+        setLoading(false);
+      });
+  };
+
+  const handlePagination = useCallback((link?: string) => {
+    if (!loading && link) {
+      handleFetchBreeds(link);
+    }
+  }, [loading]);
+
   return (
   <ThemedView style={styles.container}>
     <ThemedView style={styles.factContainer}>
@@ -48,7 +90,26 @@ export default function HomeScreen() {
       <ThemedView style={styles.searchContainer}>
         <TextInput placeholder='Seach...' style={styles.searchInput}></TextInput>
       </ThemedView>
-      <BreedList />
+      <BreedList breeds={breeds} currentPage={meta?.pagination.current}/>
+      <ThemedView style={styles.pagination}>
+        <TouchableHighlight disabled={!links?.prev} onPress={() => handlePagination(links?.prev)}>
+          <IconSymbol 
+            size={32}
+            name="chevron.left"
+            color={Colors.dark.icon}>
+          </IconSymbol>
+        </TouchableHighlight>
+        <ThemedText type='default'>
+          {meta?.pagination.current ?? '?'} / {meta?.pagination.last ?? '?'}
+        </ThemedText>
+        <TouchableHighlight disabled={!links?.next} onPress={() => handlePagination(links?.next)}>
+          <IconSymbol 
+            size={32}
+            name="chevron.right"
+            color={Colors.dark.icon}>
+          </IconSymbol>
+        </TouchableHighlight>
+      </ThemedView>
     </ThemedView>
   </ThemedView>
   );
@@ -75,7 +136,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 8,
     flex: 1,
-    marginTop: 64,
+    marginTop: 20,
   },
   searchContainer: {
 
@@ -86,5 +147,11 @@ const styles = StyleSheet.create({
     padding: 8,
     color: Colors.dark.text,
     fontSize: 16,
+  },
+  pagination: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   }
 });

@@ -1,21 +1,22 @@
-import { ActivityIndicator, Image, StyleProp, StyleSheet, TouchableHighlight, ViewStyle } from "react-native";
+import { ActivityIndicator, Image, ScrollView, StyleProp, StyleSheet, TouchableHighlight, ViewStyle } from "react-native";
 import { ThemedView } from "../ThemedView";
-import { BreedsResponse } from "@/models/breeds/BreedsResponse";
 import { useEffect, useState } from "react";
 import { BreedDTO } from "@/models/breeds/BreedDTO";
-import { API_BREED_LIST_URL, apiBreedImgUrl } from "@/constants/ApiUrls";
+import { apiBreedImgUrl, getLocalImgUrl } from "@/constants/ApiUrls";
 import { ThemedText } from "../ThemedText";
 import { useRouter } from "expo-router";
 import { BreedImageResponse } from "@/models/image/BreedImageResponse";
 
 type BreedListProps = {
+  breeds?: BreedDTO[];
+  currentPage?: number;
   style?: StyleProp<ViewStyle>;
 };
 
 export function BreedList(props: BreedListProps) {
   const router = useRouter();
 
-  const [breeds, setBreeds] = useState<BreedDTO[]>([]);
+  const breeds = props.breeds || [];
   const [loading, setLoading] = useState(false);
 
   const [imgs, setImgs] = useState<{ [key: string]: BreedImageResponse }>({});
@@ -25,43 +26,36 @@ export function BreedList(props: BreedListProps) {
       return;
     }
     for (const breed of breeds) {
-      fetch(apiBreedImgUrl(breed.attributes.name))
-        .then(res => res.json())
-        .then((data: BreedImageResponse) => {
-          setImgs(prev => ({
-            ...prev,
-            [breed.id]: data
-          }));
-        }).catch(err => {
-          console.log(err);
-        });
+      const localImgUrl = getLocalImgUrl(breed.attributes.name);
+      if (localImgUrl) {
+        setImgs(prev => ({
+          ...prev,
+          [breed.id]: {
+            status: 'success',
+            message: localImgUrl
+          }
+        }));
+      } else {
+        fetch(apiBreedImgUrl(breed.attributes.name))
+          .then(res => res.json())
+          .then((data: BreedImageResponse) => {
+            setImgs(prev => ({
+              ...prev,
+              [breed.id]: data
+            }));
+          }).catch(err => {
+            console.log(err);
+          });
+      }
     }
   }, [breeds]);
 
-  useEffect(() => {
-    handleFetchFact();
-  }, []);
-
-  const handleFetchFact = function() {
-    if (loading) {
-      return;
-    }
-    setLoading(true);
-    fetch(API_BREED_LIST_URL)
-      .then(res => res.json())
-      .then((res: BreedsResponse) => {
-        setBreeds(res.data);
-      }).finally(() => {
-        setLoading(false);
-      });
-  };
-
   const handleBreedClick = function(breedId: string) {
-    router.push(`/breed/${breedId}`);
+    router.push({ pathname: `/breed/[breedId]`, params: { currentPage: props.currentPage, breedId }});
   }
 
   return (
-    <ThemedView style={[styles.container, props.style]}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       {breeds.map((breed, index) => (
         <TouchableHighlight key={index} style={styles.itemContainer} onPress={() => handleBreedClick(breed.id)}>
           <ThemedView style={styles.item}>
@@ -74,7 +68,7 @@ export function BreedList(props: BreedListProps) {
           </ThemedView>
         </TouchableHighlight>
       ))}
-    </ThemedView>
+    </ScrollView>
   );
 }
 
@@ -84,12 +78,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     flex: 1,
-    overflow: 'scroll'
+  },
+  scrollContent: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
   itemContainer: {
     width: '50%',
     padding: 4,
-    minHeight: 0,
+    maxHeight: 200,
   },
   item: {
     display: 'flex',
