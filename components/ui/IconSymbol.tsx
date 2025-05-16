@@ -15,6 +15,8 @@ const MAPPING = {
   'chevron.right': 'chevron-right',
   'chevron.left': 'chevron-left',
   'arrow.2.circlepath': 'cached',
+  'tray.and.arrow.down': 'monitor-weight',
+  'hourglass': 'hourglass-bottom'
 } as Partial<
   Record<
     import('expo-symbols').SymbolViewProps['name'],

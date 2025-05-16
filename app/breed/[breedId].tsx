@@ -75,9 +75,23 @@ export default function BreedScreen() {
             { loadingImg ? <ActivityIndicator /> : <Image source={{ uri: breedImg }} style={styles.breedImg} /> }
           </ThemedView>
           <ThemedText type="default">{breed?.attributes.description}</ThemedText>
-          <ThemedView>
-            <ThemedText>Weight: {breed?.attributes.male_weight.min} - {breed?.attributes.male_weight.max} kg</ThemedText>
-            <ThemedText>Lifespan: {breed?.attributes.life.min} - {breed?.attributes.life.max} years</ThemedText>
+          <ThemedView style={styles.bottomContainer}>
+            <ThemedView style={styles.infoContainer}>
+              <IconSymbol
+                name="tray.and.arrow.down"
+                color={Colors.dark.icon}
+                size={32}>
+              </IconSymbol>
+              <ThemedText>Weight: {breed?.attributes.male_weight.min} - {breed?.attributes.male_weight.max} kg</ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.infoContainer}>
+              <IconSymbol
+                name="hourglass"
+                color={Colors.dark.icon}
+                size={32}>
+              </IconSymbol>
+              <ThemedText>Lifespan: {breed?.attributes.life.min} - {breed?.attributes.life.max} years</ThemedText>
+            </ThemedView>
           </ThemedView>
         </> }
     </ThemedView>
@@ -109,5 +123,23 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 16
+  },
+  infoContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+    backgroundColor: 'transparent'
+  },
+  bottomContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 10,
+    marginTop: 16,
+    borderWidth: 2,
+    borderColor: Colors.dark.tabIconDefault,
+    borderRadius: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
   }
 });

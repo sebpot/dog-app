@@ -88,7 +88,8 @@ export default function HomeScreen() {
     </ThemedView>
     <ThemedView style={styles.breedsContainer}>
       <ThemedView style={styles.searchContainer}>
-        <TextInput placeholder='Seach...' style={styles.searchInput}></TextInput>
+        <ThemedText type="subtitle">Breeds</ThemedText>
+        <ThemedView style={{ height: 0.5, backgroundColor: Colors.dark.tint, marginVertical: 1, width: '100%' }} />
       </ThemedView>
       <BreedList breeds={breeds} currentPage={meta?.pagination.current}/>
       <ThemedView style={styles.pagination}>
@@ -139,14 +140,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   searchContainer: {
-
-  },
-  searchInput: {
-    backgroundColor: 'rgb(54, 60, 64)',
-    borderRadius: 8,
-    padding: 8,
-    color: Colors.dark.text,
-    fontSize: 16,
+    marginHorizontal: 8,
   },
   pagination: {
     display: 'flex',

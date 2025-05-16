@@ -23,7 +23,7 @@ export const apiBreedImgUrl = (name: string) => {
 
 export const getLocalImgUrl = (name: string) => {
     if (LOCAL_IMG_MAPPING.has(name)) {
-        return LOCAL_IMG_MAPPING.get(name).uri;
+        return LOCAL_IMG_MAPPING.get(name);
     }
     return null;
 }
@@ -82,5 +82,7 @@ const API_IMG_MAPPING = new Map<string, string>([
 ]);
 
 const LOCAL_IMG_MAPPING = new Map<string, any>([
-    ["Alaskan Klee Kai", require("../assets/images/breeds/alaskan-klee-kai.jpg")],
+    ["Alaskan Klee Kai", "https://upload.wikimedia.org/wikipedia/commons/5/54/WOWAKK-Kukai-Alaskan-Klee-Kai.jpg"],
+    ["American English Coonhound", "https://georgiapuppiesfromheaven.com/dog-breed-photos/ameengco.jpg"],
+    ["American Foxhound", "https://www.karusek.com.pl/poradnik/wp-content/uploads/sites/3/2021/09/shutterstock_1939375954.jpg"]
 ]);
